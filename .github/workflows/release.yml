@@ -78,7 +78,7 @@ jobs:
           packaging/linux/build_packages.sh sandik sandik ${{ needs.meta.outputs.version }}
           sandik/editions/sandik/icon.png AGPL-3.0-or-later "CRM, devis et factures — logiciel libre"
       - uses: actions/upload-artifact@v4
-        with: { name: linux-${{ matrix.runner }}, path: dist/release/* }
+        with: { name: "linux-${{ matrix.runner }}", path: "dist/release/*" }
 
   sh-and-source:
     needs: [meta, frontend]
