@@ -1,0 +1,36 @@
+# sandik + PostgreSQL — à coller dans Portainer (Stacks → Add stack) ou : docker compose up -d
+# Pensez à changer le mot de passe POSTGRES_PASSWORD (variable d'environnement de la stack).
+services:
+  sandik:
+    image: ghcr.io/davidharputoglu/sandik:0.1.0
+    restart: unless-stopped
+    ports:
+      - "8460:8460"
+    environment:
+      SANDIK_DATABASE_URL: postgresql+psycopg://sandik:${POSTGRES_PASSWORD:-changez-moi}@db:5432/sandik
+      SANDIK_LANG: ${SANDIK_LANG:-fr}
+      # SANDIK_COOKIE_SECURE: "1"   # à activer derrière un proxy HTTPS
+    volumes:
+      - sandik-data:/data
+    depends_on:
+      db:
+        condition: service_healthy
+
+  db:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: sandik
+      POSTGRES_USER: sandik
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changez-moi}
+    volumes:
+      - sandik-db:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U sandik -d sandik"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  sandik-data:
+  sandik-db:

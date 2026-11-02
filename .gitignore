@@ -1,0 +1,19 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.pytest_cache/
+# Construction
+build/
+dist/
+*.spec.bak
+# Interface compilée (reconstruite par npm run build / GitHub)
+sandik/static/
+frontend/node_modules/
+# Données locales
+*.db
+*.db-wal
+*.db-shm
+data/

@@ -1,0 +1,114 @@
+# Édition publique et gratuite : sandik (AGPL-3.0)
+
+[edition]
+id = "sandik"
+name = "sandik"
+tagline = "CRM · Devis · Factures"
+license = "AGPL-3.0-or-later"
+author = "David HARPUTOGLU"
+contact = "kasparof57@gmail.com"
+credits = "Créé par David HARPUTOGLU, avec l'aide de l'intelligence artificielle."
+copyright = "© 2026 David HARPUTOGLU"
+# Code source (obligation de l'AGPL pour les utilisateurs en réseau) — à ajuster à la création du dépôt
+source_url = "https://github.com/davidharputoglu/sandik"
+
+[theme]
+primary = "#0fa39c"
+primary_strong = "#0b7f7a"
+primary_soft = "#e2f6f5"
+ink = "#2f363f"
+muted = "#6b7480"
+radius = "10px"
+mode = "auto"          # auto | light | dark
+
+[assets]
+logo = "logo.png"
+logo_dark = "logo-dark.png"
+icon = "icon.png"
+icon_192 = "icon-192.png"
+apple_touch_icon = "apple-touch-icon.png"
+favicon = "favicon.ico"
+favicon_png = "favicon-32.png"
+
+[modules]
+enabled = "*"
+disabled = []
+
+[i18n]
+# Langues proposées par sandik (codes ISO 639). La première est la langue par défaut.
+default = "fr"
+languages = [
+  "fr", "en", "ar", "es", "pt", "it",
+  # langues turciques
+  "tr", "az", "kk", "uz", "tk", "ky", "tt", "ba", "ug", "cv", "crh", "gag", "sah", "kaa",
+]
+
+[defaults]
+currency = "EUR"
+locale = "fr-FR"
+quote_validity_days = 30
+payment_terms_days = 30
+
+[numbering]
+quote = "DEV-{YYYY}-{N:4}"
+invoice = "FAC-{YYYY}-{N:4}"
+credit_note = "AV-{YYYY}-{N:4}"
+reset = "yearly"       # yearly | monthly | never
+
+# ---------------------------------------------------------------- thèmes fournis
+# « auto » choisit le premier thème clair ou le premier thème sombre selon le système.
+# Les utilisateurs peuvent créer leurs propres thèmes dans Paramètres → Apparence.
+
+[[themes]]
+id = "turquoise"
+name = "Turquoise"
+mode = "light"
+primary = "#0fa39c"
+primary_strong = "#0b8079"
+on_primary = "#ffffff"
+bg = "#f2f7f7"
+surface = "#ffffff"
+surface_2 = "#eef4f4"
+border = "#dbe6e6"
+text = "#22303a"
+muted = "#64737f"
+sidebar = "#0d4547"
+sidebar_text = "#cfeceb"
+sidebar_mode = "dark"
+accent = "#4fd8d0"
+
+[[themes]]
+id = "sombre"
+name = "Sombre"
+mode = "dark"
+primary = "#2cc5bc"
+primary_strong = "#1aa79e"
+on_primary = "#04211f"
+bg = "#14181d"
+surface = "#1b2027"
+surface_2 = "#232a32"
+border = "#2e3640"
+text = "#e5eaef"
+muted = "#95a1ad"
+sidebar = "#0f1317"
+sidebar_text = "#c6d0d9"
+sidebar_mode = "dark"
+accent = "#4fd8d0"
+
+[[themes]]
+id = "noir"
+name = "Noir"
+mode = "dark"
+primary = "#3fe0d4"
+primary_strong = "#22c3b7"
+on_primary = "#001614"
+bg = "#000000"
+surface = "#0a0a0a"
+surface_2 = "#141414"
+border = "#242424"
+text = "#f2f2f2"
+muted = "#8c8c8c"
+sidebar = "#000000"
+sidebar_text = "#d0d0d0"
+sidebar_mode = "dark"
+accent = "#3fe0d4"

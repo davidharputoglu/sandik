@@ -1,0 +1,152 @@
+# Fabrication des fichiers d'installation de sandik, à chaque version (tag vX.Y.Z) ou à la demande.
+# Résultat : une « Release » GitHub avec Windows (.exe), Linux (.deb, .rpm, .AppImage, .sh, source)
+# et l'image Docker multi-architecture sur ghcr.io (amd64, arm64, armv7 — Raspberry Pi 3+).
+name: Release
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  packages: write
+
+env:
+  APP: sandik
+
+jobs:
+  meta:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.v.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: v
+        run: echo "version=$(python3 -c "import tomllib;print(tomllib.load(open('pyproject.toml','rb'))['project']['version'])")" >> "$GITHUB_OUTPUT"
+
+  frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: npm, cache-dependency-path: frontend/package-lock.json }
+      - run: npm ci && npm run build
+        working-directory: frontend
+      - uses: actions/upload-artifact@v4
+        with: { name: static, path: sandik/static }
+
+  windows:
+    needs: [meta, frontend]
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with: { name: static, path: sandik/static }
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - run: pip install . pyinstaller pywebview
+      - run: python packaging/build_app.py --name sandik --edition sandik --icon sandik/editions/sandik/favicon.ico --windowed
+      - run: choco install innosetup -y --no-progress
+      - name: Installateur Inno Setup
+        shell: pwsh
+        run: |
+          & "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe" /DEdition=sandik /DAppName=sandik `
+            /DAppVersion=${{ needs.meta.outputs.version }} /DSourceDir=..\..\dist\sandik `
+            /DIconFile=..\..\sandik\editions\sandik\favicon.ico /DLicenseFile=..\..\LICENSE `
+            /DInfoFile=..\..\DISCLAIMER.md /DOutputDir=..\..\dist\release packaging\windows\installer.iss
+      - uses: actions/upload-artifact@v4
+        with: { name: windows, path: dist/release/* }
+
+  linux:
+    needs: [meta, frontend]
+    strategy:
+      matrix:
+        runner: [ubuntu-22.04, ubuntu-22.04-arm]   # x86_64 et ARM64 (Raspberry Pi 4/5 64 bits)
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with: { name: static, path: sandik/static }
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - run: |
+          sudo apt-get update && sudo apt-get install -y ruby ruby-dev rpm libfuse2 file
+          sudo gem install --no-document fpm
+      - run: pip install . pyinstaller
+      - run: python packaging/build_app.py --name sandik --edition sandik --icon sandik/editions/sandik/icon.png
+      - run: >
+          packaging/linux/build_packages.sh sandik sandik ${{ needs.meta.outputs.version }}
+          sandik/editions/sandik/icon.png AGPL-3.0-or-later "CRM, devis et factures — logiciel libre"
+      - uses: actions/upload-artifact@v4
+        with: { name: linux-${{ matrix.runner }}, path: dist/release/* }
+
+  sh-and-source:
+    needs: [meta, frontend]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with: { name: static, path: sandik/static }
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - run: sudo apt-get update && sudo apt-get install -y makeself
+      - run: pip install build && python -m build --wheel --outdir dist/wheels
+      - name: Installateur .sh (tous Linux, Raspberry Pi compris)
+        run: >
+          packaging/linux/make_sh.sh sandik sandik sandik ${{ needs.meta.outputs.version }}
+          "$(python3 -c "import tomllib;print(' '.join(tomllib.load(open('sandik/editions/sandik/edition.toml','rb'))['i18n']['languages']))")"
+          fr sandik/editions/sandik/icon.png dist/wheels/*.whl
+      - name: Code source
+        run: git archive --format=tar.gz --prefix=sandik-${{ needs.meta.outputs.version }}/ -o dist/release/sandik-${{ needs.meta.outputs.version }}-source.tar.gz HEAD
+      - uses: actions/upload-artifact@v4
+        with: { name: sh-source, path: dist/release/* }
+
+  docker:
+    needs: meta
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-qemu-action@v3
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with: { registry: ghcr.io, username: "${{ github.actor }}", password: "${{ secrets.GITHUB_TOKEN }}" }
+      - id: img
+        run: echo "name=ghcr.io/$(echo '${{ github.repository_owner }}' | tr '[:upper:]' '[:lower:]')/sandik" >> "$GITHUB_OUTPUT"
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: docker/Dockerfile
+          platforms: linux/amd64,linux/arm64,linux/arm/v7
+          push: true
+          build-args: VERSION=${{ needs.meta.outputs.version }}
+          tags: |
+            ${{ steps.img.outputs.name }}:${{ needs.meta.outputs.version }}
+            ${{ steps.img.outputs.name }}:latest
+
+  release:
+    needs: [meta, windows, linux, sh-and-source, docker]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with: { path: out, merge-multiple: true }
+      - run: cd out && sha256sum * > SHA256SUMS.txt && ls -la
+      - uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_type == 'tag' && github.ref_name || format('v{0}', needs.meta.outputs.version) }}
+          name: sandik ${{ needs.meta.outputs.version }}
+          draft: ${{ github.ref_type != 'tag' }}
+          files: out/*
+          body: |
+            **sandik ${{ needs.meta.outputs.version }}** — CRM, devis et factures.
+            Créé par David HARPUTOGLU, avec l'aide de l'intelligence artificielle — kasparof57@gmail.com — AGPL-3.0-or-later.
+
+            | Système | Fichier |
+            |---|---|
+            | Windows 10/11 | `sandik-${{ needs.meta.outputs.version }}-windows-x64-setup.exe` |
+            | Debian, Ubuntu, Raspberry Pi OS 64 bits | `.deb` (amd64 / arm64) |
+            | Fedora, openSUSE… | `.rpm` (x86_64 / aarch64) |
+            | Tout Linux sans installation | `.AppImage` (x86_64 / aarch64) |
+            | Tout Linux, Raspberry Pi 3+ (32/64 bits) | `sandik-${{ needs.meta.outputs.version }}-linux.sh` |
+            | Docker / Portainer | `docker pull ghcr.io/davidharputoglu/sandik:${{ needs.meta.outputs.version }}` |
+
+            Logiciel fourni sans garantie — voir DISCLAIMER.md.

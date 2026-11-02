@@ -1,0 +1,13 @@
+[Desktop Entry]
+Type=Application
+Name=@NAME@
+GenericName=CRM, Quotes & Invoices
+GenericName[fr]=CRM, devis et factures
+GenericName[tr]=CRM, teklif ve faturalar
+Comment=@COMMENT@
+Exec=@EXEC@
+Icon=@ICON@
+Terminal=false
+Categories=Office;Finance;
+Keywords=invoice;quote;crm;facture;devis;fatura;teklif;
+StartupNotify=true

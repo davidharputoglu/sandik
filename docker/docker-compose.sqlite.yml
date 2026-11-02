@@ -1,0 +1,14 @@
+# sandik seul, base SQLite — léger, idéal pour un Raspberry Pi 3 ou un petit serveur.
+services:
+  sandik:
+    image: ghcr.io/davidharputoglu/sandik:0.1.0
+    restart: unless-stopped
+    ports:
+      - "8460:8460"
+    environment:
+      SANDIK_LANG: ${SANDIK_LANG:-fr}
+    volumes:
+      - sandik-data:/data
+
+volumes:
+  sandik-data:
