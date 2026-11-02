@@ -13,6 +13,7 @@ permissions:
 
 env:
   APP: sandik
+  DOCKER_BUILD_RECORD_UPLOAD: false   # pas d'artefact technique .dockerbuild dans la version
 
 jobs:
   meta:
@@ -55,7 +56,7 @@ jobs:
             /DIconFile=..\..\sandik\editions\sandik\favicon.ico /DLicenseFile=..\..\LICENSE `
             /DInfoFile=..\..\DISCLAIMER.md /DOutputDir=..\..\dist\release packaging\windows\installer.iss
       - uses: actions/upload-artifact@v4
-        with: { name: windows, path: dist/release/* }
+        with: { name: release-windows, path: "dist/release/*" }
 
   linux:
     needs: [meta, frontend]
@@ -78,7 +79,7 @@ jobs:
           packaging/linux/build_packages.sh sandik sandik ${{ needs.meta.outputs.version }}
           sandik/editions/sandik/icon.png AGPL-3.0-or-later "CRM, devis et factures — logiciel libre"
       - uses: actions/upload-artifact@v4
-        with: { name: "linux-${{ matrix.runner }}", path: "dist/release/*" }
+        with: { name: "release-linux-${{ matrix.runner }}", path: "dist/release/*" }
 
   sh-and-source:
     needs: [meta, frontend]
@@ -99,7 +100,7 @@ jobs:
       - name: Code source
         run: git archive --format=tar.gz --prefix=sandik-${{ needs.meta.outputs.version }}/ -o dist/release/sandik-${{ needs.meta.outputs.version }}-source.tar.gz HEAD
       - uses: actions/upload-artifact@v4
-        with: { name: sh-source, path: dist/release/* }
+        with: { name: release-sh-source, path: "dist/release/*" }
 
   docker:
     needs: meta
@@ -128,7 +129,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/download-artifact@v4
-        with: { path: out, merge-multiple: true }
+        with: { path: out, pattern: "release-*", merge-multiple: true }
       - run: cd out && sha256sum * > SHA256SUMS.txt && ls -la
       - uses: softprops/action-gh-release@v2
         with:
