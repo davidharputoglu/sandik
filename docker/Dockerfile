@@ -22,7 +22,7 @@ LABEL org.opencontainers.image.title="sandik" \
       org.opencontainers.image.licenses="AGPL-3.0-or-later" \
       org.opencontainers.image.source="https://github.com/davidharputoglu/sandik"
 ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1 PIP_NO_CACHE_DIR=1 PIP_DISABLE_PIP_VERSION_CHECK=1 \
-    SANDIK_DATA_DIR=/data SANDIK_AUTH=1
+    SANDIK_DATA_DIR=/data SANDIK_AUTH=1 SANDIK_PORT=8460
 WORKDIR /app
 COPY pyproject.toml README.md LICENSE NOTICE.md THIRD_PARTY_NOTICES.md ./
 COPY licenses ./licenses
@@ -36,7 +36,8 @@ RUN if [ "$TARGETARCH" = "arm" ]; then \
     && useradd --system --uid 1000 --home /data sandik && mkdir -p /data && chown sandik:sandik /data
 USER sandik
 VOLUME ["/data"]
+# Port d'écoute : variable SANDIK_PORT (8460 par défaut)
 EXPOSE 8460
 HEALTHCHECK --interval=30s --timeout=5s --start-period=20s \
-  CMD python -c "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8460/api/health', timeout=4)" || exit 1
-CMD ["sandik", "--host", "0.0.0.0", "--port", "8460"]
+  CMD python -c "import os, urllib.request; urllib.request.urlopen('http://127.0.0.1:%s/api/health' % os.environ.get('SANDIK_PORT', '8460'), timeout=4)" || exit 1
+CMD ["sandik", "--host", "0.0.0.0"]

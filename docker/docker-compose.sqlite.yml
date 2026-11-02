@@ -1,11 +1,14 @@
 # sandik seul, base SQLite — léger, idéal pour un Raspberry Pi 3 ou un petit serveur.
+# Variables (Portainer : « Environment variables » de la stack) : PORT=8460, SANDIK_LANG=fr
+# Fonctionne aussi avec Podman : podman-compose -f docker-compose.sqlite.yml up -d
 services:
   sandik:
     image: ghcr.io/davidharputoglu/sandik:0.1.0
     restart: unless-stopped
     ports:
-      - "8460:8460"
+      - "${PORT:-8460}:${PORT:-8460}"
     environment:
+      SANDIK_PORT: ${PORT:-8460}
       SANDIK_LANG: ${SANDIK_LANG:-fr}
     volumes:
       - sandik-data:/data

@@ -1,12 +1,18 @@
-# sandik + PostgreSQL — à coller dans Portainer (Stacks → Add stack) ou : docker compose up -d
-# Pensez à changer le mot de passe POSTGRES_PASSWORD (variable d'environnement de la stack).
+# sandik + PostgreSQL — à coller dans Portainer (Stacks → Add stack), ou : docker compose up -d
+#
+# Variables à régler (Portainer : section « Environment variables » de la stack ; ailleurs : fichier .env) :
+#   PORT=8460                  port de sandik (ex. 9000 → http://<serveur>:9000)
+#   POSTGRES_PASSWORD=…        mot de passe de la base — à changer !
+#   SANDIK_LANG=fr             langue par défaut
+# Fonctionne aussi avec Podman : podman-compose up -d
 services:
   sandik:
     image: ghcr.io/davidharputoglu/sandik:0.1.0
     restart: unless-stopped
     ports:
-      - "8460:8460"
+      - "${PORT:-8460}:${PORT:-8460}"
     environment:
+      SANDIK_PORT: ${PORT:-8460}
       SANDIK_DATABASE_URL: postgresql+psycopg://sandik:${POSTGRES_PASSWORD:-changez-moi}@db:5432/sandik
       SANDIK_LANG: ${SANDIK_LANG:-fr}
       # SANDIK_COOKIE_SECURE: "1"   # à activer derrière un proxy HTTPS

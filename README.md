@@ -41,6 +41,14 @@ Dans Portainer : **Stacks → Add stack**, coller [`docker/docker-compose.yml`](
 (PostgreSQL) ou [`docker/docker-compose.sqlite.yml`](docker/docker-compose.sqlite.yml) (léger, idéal sur
 Raspberry Pi). Puis ouvrir `http://<serveur>:8460` et créer le compte administrateur.
 
+**Choisir le port** : ajouter la variable `PORT` (ex. `PORT=9000`) dans la section *Environment variables*
+de la stack Portainer, ou dans un fichier `.env` à côté du fichier compose. Sans compose :
+
+```sh
+docker run -d --name sandik -p 9000:9000 -e SANDIK_PORT=9000 -v sandik-data:/data ghcr.io/davidharputoglu/sandik:0.1.0
+podman run -d --name sandik -p 9000:9000 -e SANDIK_PORT=9000 -v sandik-data:/data ghcr.io/davidharputoglu/sandik:0.1.0
+```
+
 ### Linux (.sh) et Raspberry Pi
 
 ```sh
