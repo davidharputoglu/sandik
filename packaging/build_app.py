@@ -53,7 +53,8 @@ def main() -> None:
 
     sep = ";" if sys.platform == "win32" else ":"
     opts = [
-        str(launcher), "--noconfirm", "--clean", "--onedir", "--name", args.name, "--icon", args.icon,
+        # chemins absolus : PyInstaller résout les chemins relatifs depuis --specpath (build/)
+        str(launcher), "--noconfirm", "--clean", "--onedir", "--name", args.name, "--icon", str(Path(args.icon).resolve()),
         "--distpath", str(root / "dist"), "--workpath", str(build / "pyinstaller"), "--specpath", str(build),
         "--collect-data", "sandik", "--copy-metadata", "sandik", "--collect-submodules", "sandik",
         "--collect-submodules", "uvicorn", "--hidden-import", "platformdirs",
