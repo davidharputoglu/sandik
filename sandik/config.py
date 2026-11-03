@@ -29,6 +29,15 @@ class Settings:
     cookie_secure: bool
     language: str | None = None
     config_file: Path | None = None
+    port: int = 8460
+    host: str = "127.0.0.1"
+    #: adresse publique imposée par l'environnement (sinon : Paramètres → Réseau)
+    public_url: str | None = None
+    #: relais web (reverse proxy) de confiance pour les en-têtes X-Forwarded-* ("*" = tous)
+    trusted_proxies: str = "127.0.0.1"
+    #: nom sur le réseau local (mDNS) imposé par l'environnement ; mdns : None = réglage de l'application
+    local_name: str | None = None
+    mdns: bool | None = None
 
 
 def config_path(folder_name: str) -> Path:
@@ -74,6 +83,8 @@ def load_settings(
     database_url: str | None = None,
     auth: bool | None = None,
     desktop: bool = False,
+    port: int | None = None,
+    host: str | None = None,
 ) -> Settings:
     env = os.environ
     edition = edition or env.get("SANDIK_EDITION") or "sandik"
@@ -99,4 +110,10 @@ def load_settings(
         cookie_secure=_bool(env.get("SANDIK_COOKIE_SECURE"), default=False),
         language=env.get("SANDIK_LANG") or cfg.get("language") or None,
         config_file=config_path(folder_name),
+        port=port or int(env.get("SANDIK_PORT") or cfg.get("port") or 8460),
+        host=host or "127.0.0.1",
+        public_url=(env.get("SANDIK_PUBLIC_URL") or "").rstrip("/") or None,
+        trusted_proxies=env.get("SANDIK_TRUSTED_PROXIES") or "127.0.0.1",
+        local_name=env.get("SANDIK_LOCAL_NAME") or None,
+        mdns=_bool(env.get("SANDIK_MDNS"), default=False) if env.get("SANDIK_MDNS") else None,
     )

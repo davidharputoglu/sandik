@@ -48,6 +48,17 @@ def defaults(edition: Edition) -> dict[str, Any]:
         },
         "units": {"list": ["u", "h", "j", "forfait", "lot", "m", "ml", "m²", "m³", "kg", "t", "L"]},
         "setup": {"done": False, "location_done": False},  # assistant de premier lancement
+        "network": {
+            "public_url": "",          # ex. https://factures.monentreprise.fr (liens envoyés par e-mail)
+            "local_name": edition.id,  # nom sur le réseau local : http://<nom>.local:<port>
+            "mdns": False,             # annoncer ce nom sur le réseau local
+            # DNS dynamique : met à jour l'adresse IP publique (box à IP changeante)
+            "dyndns_enabled": False,
+            "dyndns_provider": "duckdns",  # duckdns | custom (deSEC, FreeDNS, dynv6…)
+            "duckdns_subdomain": "",
+            "duckdns_token": "",
+            "dyndns_url": "",
+        },
         "modules": {
             "disabled": [],          # modules installés mais désactivés
             "catalog_url": "",       # futur : catalogue des modules (dépôt GitHub)
@@ -62,7 +73,7 @@ def defaults(edition: Edition) -> dict[str, Any]:
     }
 
 
-KEYS = {"company", "numbering", "documents", "vat", "units", "appearance", "modules", "setup"}
+KEYS = {"company", "numbering", "documents", "vat", "units", "appearance", "modules", "setup", "network"}
 
 
 def get_setting(db: Session, edition: Edition, key: str) -> dict[str, Any]:

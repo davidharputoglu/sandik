@@ -1,0 +1,49 @@
+# sandik avec un nom gratuit DuckDNS (ex. monentreprise.duckdns.org) et HTTPS automatique.
+# 1. Créez un compte gratuit sur https://www.duckdns.org, choisissez un sous-domaine, copiez votre jeton (token).
+# 2. Ouvrez les ports 80 et 443 de votre box vers ce serveur.
+# 3. Collez ce fichier dans Portainer (Stacks → Add stack) avec les variables :
+#      DUCKDNS_SUBDOMAIN=monentreprise     (sans « .duckdns.org »)
+#      DUCKDNS_TOKEN=xxxxxxxx-xxxx-…       (votre jeton DuckDNS)
+#      SANDIK_LANG=fr
+# L'adresse IP de votre box est mise à jour automatiquement toutes les 5 minutes.
+services:
+  sandik:
+    image: ghcr.io/davidharputoglu/sandik:0.1.0
+    restart: unless-stopped
+    environment:
+      SANDIK_PUBLIC_URL: https://${DUCKDNS_SUBDOMAIN:?indiquez votre sous-domaine DuckDNS}.duckdns.org
+      SANDIK_TRUSTED_PROXIES: "*"
+      SANDIK_COOKIE_SECURE: "1"
+      SANDIK_LANG: ${SANDIK_LANG:-fr}
+    volumes:
+      - sandik-data:/data
+
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    command: caddy reverse-proxy --from ${DUCKDNS_SUBDOMAIN}.duckdns.org --to sandik:8460
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - caddy-data:/data
+      - caddy-config:/config
+    depends_on:
+      - sandik
+
+  duckdns:
+    # mise à jour de l'adresse IP publique auprès de DuckDNS (toutes les 5 minutes)
+    image: alpine:3
+    restart: unless-stopped
+    environment:
+      DUCKDNS_SUBDOMAIN: ${DUCKDNS_SUBDOMAIN}
+      DUCKDNS_TOKEN: ${DUCKDNS_TOKEN:?indiquez votre jeton DuckDNS}
+    command: >
+      sh -c 'while true; do
+        echo "$$(date) DuckDNS : $$(wget -qO- "https://www.duckdns.org/update?domains=$$DUCKDNS_SUBDOMAIN&token=$$DUCKDNS_TOKEN&ip=")";
+        sleep 300; done'
+
+volumes:
+  sandik-data:
+  caddy-data:
+  caddy-config:

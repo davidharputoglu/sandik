@@ -136,6 +136,7 @@ mkdir -p "$PREFIX" "$DATA_DIR"
 "$PY" -m venv --clear "$PREFIX/venv"
 "$PREFIX/venv/bin/python" -m pip install --quiet --upgrade pip
 "$PREFIX/venv/bin/python" -m pip install --quiet "$HERE"/wheels/*.whl
+"$PREFIX/venv/bin/python" -m pip install --quiet "zeroconf>=0.130" 2>/dev/null || true   # nom .local (facultatif)
 cp "$HERE/icon.png" "$PREFIX/icon.png"
 cp "$HERE"/LICENSE* "$HERE"/*.md "$PREFIX/" 2>/dev/null || true
 cat > "$PREFIX/install.env" <<ENV
@@ -143,6 +144,8 @@ SANDIK_EDITION=$EDITION
 SANDIK_DATA_DIR=$DATA_DIR
 SANDIK_LANG=$LANG_CODE
 ENV
+# service réseau : annonce du nom http://<id>.local:<port> sur le réseau local
+[[ "$SERVICE" == 1 ]] && printf 'SANDIK_PORT=%s\nSANDIK_MDNS=1\nSANDIK_LOCAL_NAME=%s\n' "$PORT" "$APP_ID" >> "$PREFIX/install.env"
 mkdir -p "$PREFIX/bin"
 cat > "$PREFIX/bin/$APP_ID" <<RUN
 #!/usr/bin/env bash

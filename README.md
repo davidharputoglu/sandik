@@ -49,6 +49,25 @@ docker run -d --name sandik -p 9000:9000 -e SANDIK_PORT=9000 -v sandik-data:/dat
 podman run -d --name sandik -p 9000:9000 -e SANDIK_PORT=9000 -v sandik-data:/data ghcr.io/davidharputoglu/sandik:0.1.0
 ```
 
+### Un nom plutôt qu'une adresse IP
+
+- **Réseau local** : *Paramètres → Réseau → Nom sur le réseau local* annonce l'application sous
+  `http://sandik.local:8460` (mDNS/Bonjour), reconnu par Windows, macOS, Linux et les téléphones.
+  Avec Docker, utiliser `network_mode: host` ; avec l'installateur `.sh` en mode service, c'est automatique.
+- **Nom gratuit sur Internet (DuckDNS)** : créer un sous-domaine sur [duckdns.org](https://www.duckdns.org), puis
+  soit utiliser [`docker/docker-compose.duckdns.yml`](docker/docker-compose.duckdns.yml) (HTTPS automatique,
+  variables `DUCKDNS_SUBDOMAIN` et `DUCKDNS_TOKEN`), soit activer *Paramètres → Réseau → DNS dynamique*, qui met
+  l'adresse IP à jour depuis l'application elle-même (Windows, Linux, Raspberry Pi, Docker). Autres services :
+  deSEC (`.dedyn.io`), FreeDNS, dynv6 (adresse de mise à jour personnalisée), No-IP.
+- **Votre propre domaine** (ex. `factures.monentreprise.fr`) : le faire pointer vers le serveur, puis
+  [`docker/docker-compose.https.yml`](docker/docker-compose.https.yml) avec la variable `DOMAIN` (certificat
+  Let's Encrypt automatique via Caddy, ports 80 et 443 à ouvrir sur la box).
+- **Relais web existant** (Nginx Proxy Manager, Traefik…) : le faire pointer vers `sandik:8460` et définir
+  `SANDIK_PUBLIC_URL=https://votre.domaine` et `SANDIK_TRUSTED_PROXIES=*`.
+- **Sans ouvrir de port** (box « CGNAT ») : Tailscale Funnel (nom `.ts.net`) ou Cloudflare Tunnel.
+
+Avec un port précis (ex. `monentreprise.duckdns.org:5761`), combiner le nom et la variable `PORT`.
+
 ### Linux (.sh) et Raspberry Pi
 
 ```sh
@@ -71,7 +90,7 @@ pytest                    # tests
 Interface en développement : `sandik` dans un terminal, `npm run dev` dans `frontend/`.
 
 Variables utiles : `SANDIK_DATA_DIR`, `SANDIK_DATABASE_URL`, `SANDIK_AUTH`, `SANDIK_LANG`, `SANDIK_PORT`,
-`SANDIK_COOKIE_SECURE`, `SANDIK_EDITION`.
+`SANDIK_PUBLIC_URL`, `SANDIK_TRUSTED_PROXIES`, `SANDIK_LOCAL_NAME`, `SANDIK_MDNS`, `SANDIK_COOKIE_SECURE`, `SANDIK_EDITION`.
 
 ## Éditions
 

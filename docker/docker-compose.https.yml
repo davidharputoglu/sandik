@@ -1,0 +1,39 @@
+# sandik avec votre nom de domaine et HTTPS automatique (certificat Let's Encrypt gratuit, via Caddy).
+# À coller dans Portainer (Stacks → Add stack), ou : docker compose -f docker-compose.https.yml up -d
+#
+# Prérequis : un nom de domaine (ex. factures.monentreprise.fr) qui pointe vers l'adresse IP du serveur,
+# et les ports 80 et 443 ouverts (redirigés par la box vers ce serveur).
+# Variables (Portainer : « Environment variables » de la stack) :
+#   DOMAIN=factures.monentreprise.fr     nom de domaine (obligatoire)
+#   SANDIK_LANG=fr                       langue par défaut
+# Vous avez déjà un relais web (Nginx Proxy Manager, Traefik…) ? Utilisez plutôt docker-compose.yml et
+# faites-le pointer vers sandik:8460, avec SANDIK_PUBLIC_URL et SANDIK_TRUSTED_PROXIES=* (voir README).
+services:
+  sandik:
+    image: ghcr.io/davidharputoglu/sandik:0.1.0
+    restart: unless-stopped
+    environment:
+      SANDIK_PUBLIC_URL: https://${DOMAIN:?indiquez votre nom de domaine dans la variable DOMAIN}
+      SANDIK_TRUSTED_PROXIES: "*"
+      SANDIK_COOKIE_SECURE: "1"
+      SANDIK_LANG: ${SANDIK_LANG:-fr}
+    volumes:
+      - sandik-data:/data
+
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    command: caddy reverse-proxy --from ${DOMAIN} --to sandik:8460
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - caddy-data:/data
+      - caddy-config:/config
+    depends_on:
+      - sandik
+
+volumes:
+  sandik-data:
+  caddy-data:
+  caddy-config:

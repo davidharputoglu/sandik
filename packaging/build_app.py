@@ -75,6 +75,12 @@ def main() -> None:
         opts += ["--collect-all", "webview"]
     except ImportError:
         pass
+    try:  # nom sur le réseau local (mDNS), facultatif
+        import zeroconf  # noqa: F401
+
+        opts += ["--collect-submodules", "zeroconf", "--hidden-import", "ifaddr"]
+    except ImportError:
+        pass
 
     import PyInstaller.__main__
 

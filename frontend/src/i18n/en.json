@@ -292,7 +292,8 @@
       "appearance": "Appearance",
       "fields": "Custom fields",
       "modules": "Modules",
-      "about": "About"
+      "about": "About",
+      "network": "Network"
     },
     "company": {
       "logo": "Company logo",
@@ -429,11 +430,44 @@
       "license_text_private": "Proprietary software. All rights reserved.",
       "disclaimer": "This software is provided without warranty and does not replace your accountant. It is not a certified e-invoicing platform. Check that your documents comply with the law.",
       "third_party": "Third-party components: FastAPI, Starlette, Uvicorn, SQLAlchemy, Pydantic (MIT / BSD), Svelte, Vite (MIT), Inter, Montserrat and Noto Sans Arabic fonts (SIL OFL 1.1)."
+    },
+    "network": {
+      "addresses": "Application addresses",
+      "this_computer": "On this computer",
+      "lan": "On the local network",
+      "local_name": "Local network name",
+      "public": "Public address",
+      "copied": "Address copied",
+      "desktop_only": "Desktop mode: the application can only be reached from this computer. To share it, install it in server mode (Docker, or a service on Linux / Raspberry Pi).",
+      "local_title": "Local network name",
+      "local_text": "Open the application with a simple name such as http://sandik.local:8460 from every device on the network (Windows, macOS, Linux, phones), with no setup.",
+      "mdns": "Announce this name on the local network",
+      "mdns_missing": "Unavailable: the “zeroconf” component is not installed.",
+      "mdns_docker": "With Docker, the .local name only works in host network mode (network_mode: host).",
+      "mdns_error": "The name could not be announced: {error}",
+      "public_title": "Domain name (public address)",
+      "public_text": "The address your clients use to reach the application over the Internet. It is used in links sent by email (viewing and signing quotes).",
+      "locked": "Set by the server's SANDIK_PUBLIC_URL variable.",
+      "domain_help": "Free names: DuckDNS (mycompany.duckdns.org), deSEC (.dedyn.io), No-IP. Your own name: about €10 / year from a registrar. The “https” and “duckdns” Docker files enable HTTPS automatically (open ports 80 and 443 on your router). See the README.",
+      "dyndns_title": "Dynamic DNS (DuckDNS…)",
+      "dyndns_text": "If your router's IP address changes, the application reports it to your free name service every 5 minutes. Works on Windows, Linux, Raspberry Pi and Docker.",
+      "dyndns_enable": "Update my IP address automatically",
+      "provider": "Service",
+      "provider_custom": "Other service (update address)",
+      "subdomain": "DuckDNS subdomain",
+      "token": "DuckDNS token",
+      "token_hint": "Shown on duckdns.org once signed in. It is never displayed here again.",
+      "custom_url": "Update address",
+      "custom_hint": "Provided by your service (deSEC, FreeDNS, dynv6…). It contains your token: it is never displayed here again.",
+      "last_update": "Last update ({time}): {result}"
     }
   },
   "errors": {
     "generic": "Something went wrong.",
-    "network": "Cannot reach the server.",
+    "network": {
+      "bad_url": "Invalid address: it must start with http:// or https://.",
+      "bad_name": "Invalid name: lowercase letters, digits and hyphens only."
+    },
     "validation": "Some information is invalid.",
     "admin_only": "Administrator only.",
     "module": "Refused by a module.",

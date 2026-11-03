@@ -292,7 +292,8 @@
       "appearance": "Görünüm",
       "fields": "Özel alanlar",
       "modules": "Modüller",
-      "about": "Hakkında"
+      "about": "Hakkında",
+      "network": "Ağ"
     },
     "company": {
       "logo": "Şirket logosu",
@@ -429,11 +430,44 @@
       "license_text_private": "Özel lisanslı yazılım. Tüm hakları saklıdır.",
       "disclaimer": "Bu yazılım garanti olmaksızın sunulur ve mali müşavirinizin yerini tutmaz. Onaylı bir e-fatura platformu değildir. Belgelerinizin mevzuata uygunluğunu kontrol edin.",
       "third_party": "Üçüncü taraf bileşenler: FastAPI, Starlette, Uvicorn, SQLAlchemy, Pydantic (MIT / BSD), Svelte, Vite (MIT), Inter, Montserrat ve Noto Sans Arabic yazı tipleri (SIL OFL 1.1)."
+    },
+    "network": {
+      "addresses": "Uygulama adresleri",
+      "this_computer": "Bu bilgisayarda",
+      "lan": "Yerel ağda",
+      "local_name": "Yerel ağ adı",
+      "public": "Genel adres",
+      "copied": "Adres kopyalandı",
+      "desktop_only": "Masaüstü modu: uygulamaya yalnızca bu bilgisayardan erişilebilir. Paylaşmak için sunucu modunda kurun (Docker veya Linux / Raspberry Pi hizmeti).",
+      "local_title": "Yerel ağ adı",
+      "local_text": "Uygulamayı ağdaki tüm cihazlardan (Windows, macOS, Linux, telefonlar) http://sandik.local:8460 gibi basit bir adla, hiçbir ayar yapmadan açın.",
+      "mdns": "Bu adı yerel ağda duyur",
+      "mdns_missing": "Kullanılamıyor: “zeroconf” bileşeni kurulu değil.",
+      "mdns_docker": "Docker ile .local adı yalnızca “host” ağ modunda çalışır (network_mode: host).",
+      "mdns_error": "Ad duyurulamadı: {error}",
+      "public_title": "Alan adı (genel adres)",
+      "public_text": "Müşterilerinizin uygulamaya İnternet üzerinden ulaştığı adres. E-postayla gönderilen bağlantılarda kullanılır (tekliflerin görüntülenmesi ve imzalanması).",
+      "locked": "Sunucunun SANDIK_PUBLIC_URL değişkeniyle belirlenmiştir.",
+      "domain_help": "Ücretsiz adlar: DuckDNS (sirketim.duckdns.org), deSEC (.dedyn.io), No-IP. Kendi adınız: bir kayıt kuruluşunda yılda yaklaşık 10 €. “https” ve “duckdns” Docker dosyaları HTTPS'i otomatik olarak etkinleştirir (modemde 80 ve 443 portlarını açın). README'ye bakın.",
+      "dyndns_title": "Dinamik DNS (DuckDNS…)",
+      "dyndns_text": "Modeminizin IP adresi değişirse uygulama bunu 5 dakikada bir ücretsiz ad hizmetinize bildirir. Windows, Linux, Raspberry Pi ve Docker'da çalışır.",
+      "dyndns_enable": "IP adresimi otomatik olarak güncelle",
+      "provider": "Hizmet",
+      "provider_custom": "Diğer hizmet (güncelleme adresi)",
+      "subdomain": "DuckDNS alt alan adı",
+      "token": "DuckDNS anahtarı (token)",
+      "token_hint": "duckdns.org'a giriş yapınca görünür. Burada bir daha gösterilmez.",
+      "custom_url": "Güncelleme adresi",
+      "custom_hint": "Hizmetiniz tarafından verilir (deSEC, FreeDNS, dynv6…). Anahtarınızı içerir: burada bir daha gösterilmez.",
+      "last_update": "Son güncelleme ({time}): {result}"
     }
   },
   "errors": {
     "generic": "Bir hata oluştu.",
-    "network": "Sunucuya ulaşılamıyor.",
+    "network": {
+      "bad_url": "Geçersiz adres: http:// veya https:// ile başlamalıdır.",
+      "bad_name": "Geçersiz ad: yalnızca küçük harf, rakam ve tire."
+    },
     "validation": "Bazı bilgiler geçersiz.",
     "admin_only": "Yalnızca yönetici.",
     "module": "Bir modül tarafından reddedildi.",

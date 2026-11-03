@@ -292,7 +292,8 @@
       "appearance": "Apparence",
       "fields": "Champs personnalisés",
       "modules": "Modules",
-      "about": "À propos"
+      "about": "À propos",
+      "network": "Réseau"
     },
     "company": {
       "logo": "Logo de l'entreprise",
@@ -429,11 +430,44 @@
       "license_text_private": "Logiciel sous licence privée. Tous droits réservés.",
       "disclaimer": "Ce logiciel est fourni sans garantie et ne remplace pas votre expert-comptable. Il n'est pas une plateforme agréée de facturation électronique. Vérifiez la conformité de vos documents.",
       "third_party": "Composants tiers : FastAPI, Starlette, Uvicorn, SQLAlchemy, Pydantic (MIT / BSD), Svelte, Vite (MIT), polices Inter, Montserrat et Noto Sans Arabic (SIL OFL 1.1)."
+    },
+    "network": {
+      "addresses": "Adresses de l'application",
+      "this_computer": "Sur cet ordinateur",
+      "lan": "Sur le réseau local",
+      "local_name": "Nom sur le réseau local",
+      "public": "Adresse publique",
+      "copied": "Adresse copiée",
+      "desktop_only": "Mode bureau : l'application n'est joignable que depuis cet ordinateur. Pour la partager, installez-la en mode serveur (Docker, ou service sur Linux / Raspberry Pi).",
+      "local_title": "Nom sur le réseau local",
+      "local_text": "Ouvrez l'application avec un nom simple, comme http://sandik.local:8460, depuis tous les appareils du réseau (Windows, macOS, Linux, téléphones), sans rien configurer.",
+      "mdns": "Annoncer ce nom sur le réseau local",
+      "mdns_missing": "Fonction indisponible : le composant « zeroconf » n'est pas installé.",
+      "mdns_docker": "Avec Docker, le nom .local ne fonctionne qu'en mode réseau « host » (network_mode: host).",
+      "mdns_error": "Le nom n'a pas pu être annoncé : {error}",
+      "public_title": "Nom de domaine (adresse publique)",
+      "public_text": "L'adresse sous laquelle vos clients joignent l'application sur Internet. Elle sert aux liens envoyés par e-mail (consultation et signature des devis).",
+      "locked": "Imposée par la variable SANDIK_PUBLIC_URL du serveur.",
+      "domain_help": "Nom gratuit : DuckDNS (monentreprise.duckdns.org), deSEC (.dedyn.io), No-IP. Nom à vous : environ 10 € / an chez un registraire. Les fichiers Docker « https » et « duckdns » activent le HTTPS automatiquement (ports 80 et 443 à ouvrir sur la box). Voir le README.",
+      "dyndns_title": "DNS dynamique (DuckDNS…)",
+      "dyndns_text": "Si l'adresse IP de votre box change, l'application la communique elle-même à votre service de nom gratuit, toutes les 5 minutes. Fonctionne sous Windows, Linux, Raspberry Pi et Docker.",
+      "dyndns_enable": "Mettre à jour mon adresse IP automatiquement",
+      "provider": "Service",
+      "provider_custom": "Autre service (adresse de mise à jour)",
+      "subdomain": "Sous-domaine DuckDNS",
+      "token": "Jeton DuckDNS (token)",
+      "token_hint": "Visible sur duckdns.org une fois connecté. Il n'est jamais réaffiché ici.",
+      "custom_url": "Adresse de mise à jour",
+      "custom_hint": "Fournie par votre service (deSEC, FreeDNS, dynv6…). Elle contient votre jeton : elle n'est jamais réaffichée ici.",
+      "last_update": "Dernière mise à jour ({time}) : {result}"
     }
   },
   "errors": {
     "generic": "Une erreur est survenue.",
-    "network": "Impossible de joindre le serveur.",
+    "network": {
+      "bad_url": "Adresse invalide : elle doit commencer par http:// ou https://.",
+      "bad_name": "Nom invalide : lettres minuscules, chiffres et tirets uniquement."
+    },
     "validation": "Certaines informations sont invalides.",
     "admin_only": "Réservé à l'administrateur.",
     "module": "Refusé par un module.",

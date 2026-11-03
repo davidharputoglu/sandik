@@ -10,7 +10,7 @@
   import Icon from '../components/Icon.svelte'
 
   let { tab = 'company' } = $props()
-  const TABS = ['company', 'documents', 'numbering', 'vat', 'appearance', 'fields', 'modules', 'about']
+  const TABS = ['company', 'documents', 'numbering', 'vat', 'appearance', 'fields', 'modules', 'network', 'about']
   const FORMS = {
     company: [['name', 'text', 2], ['legal_form'], ['capital'], ['siren'], ['siret'], ['vat_number'], ['rcs'], ['ape'],
       ['address_line1', 'text', 2], ['address_line2', 'text', 2], ['postal_code'], ['city'], ['country'], ['email'], ['phone'],
@@ -116,7 +116,28 @@
     await api.del(`/api/modules-admin/${m.id}`); restart = true; loadModules()
   }
 
-  onMount(() => { loadFields(); loadModules() })
+  // ---- réseau : adresses, nom local (.local), adresse publique (nom de domaine)
+  let net = $state(null)
+  const NET_KEYS = ['public_url', 'local_name', 'mdns', 'dyndns_enabled', 'dyndns_provider', 'duckdns_subdomain', 'duckdns_token', 'dyndns_url']
+  let netForm = $state({})
+  const pickNet = (n) => Object.fromEntries(NET_KEYS.map((k) => [k, n[k] ?? '']))
+  async function loadNetwork() {
+    try {
+      net = await api.get('/api/system/network')
+      netForm = pickNet(net)
+    } catch { net = null }
+  }
+  async function saveNetwork() {
+    error = null; busy = true
+    try {
+      net = await api.put('/api/system/network', $state.snapshot(netForm))
+      netForm = pickNet(net)
+      toast(t('common.saved'))
+    } catch (err) { error = { text: errorText(err), details: [] } } finally { busy = false }
+  }
+  function copy(text) { navigator.clipboard?.writeText(text); toast(t('settings.network.copied')) }
+
+  onMount(() => { loadFields(); loadModules(); loadNetwork() })
   const ed = app.edition
   const isAdmin = $derived(!app.auth?.auth_enabled || app.auth?.user?.role === 'admin')
 </script>
@@ -333,6 +354,86 @@
           {:else}<div class="empty"><h3>{t('settings.modules.empty_title')}</h3>{t('settings.modules.empty_text')}</div>{/if}
         </section>
 
+      {:else if tab === 'network'}
+        {#if !net}
+          <div class="alert">{t('errors.admin_only')}</div>
+        {:else}
+          <section class="card card-body stack">
+            <h2>{t('settings.network.addresses')}</h2>
+            <div class="urls">
+              <button class="url" onclick={() => copy(net.this_computer)}><span class="muted small">{t('settings.network.this_computer')}</span><code>{net.this_computer}</code></button>
+              {#each net.addresses as a}
+                <button class="url" onclick={() => copy(a)}><span class="muted small">{t('settings.network.lan')}</span><code>{a}</code></button>
+              {/each}
+              {#if net.mdns_active}
+                <button class="url" onclick={() => copy(net.local_url)}><span class="muted small">{t('settings.network.local_name')}</span><code>{net.local_url}</code></button>
+              {/if}
+              {#if net.public_url}
+                <button class="url" onclick={() => copy(net.public_url)}><span class="muted small">{t('settings.network.public')}</span><code>{net.public_url}</code></button>
+              {/if}
+            </div>
+            {#if !net.lan_open}<p class="muted small">{t('settings.network.desktop_only')}</p>{/if}
+          </section>
+
+          <section class="card card-body stack">
+            <h2>{t('settings.network.local_title')}</h2>
+            <p class="muted">{t('settings.network.local_text')}</p>
+            <div class="grid-2">
+              <label class="field"><span>{t('settings.network.local_name')}</span>
+                <span class="suffix"><input class="input" bind:value={netForm.local_name} disabled={net.local_name_locked} /><span>.local:{net.port}</span></span>
+              </label>
+              <label class="check"><input type="checkbox" bind:checked={netForm.mdns} disabled={net.mdns_locked || !net.mdns_available} />{t('settings.network.mdns')}</label>
+            </div>
+            {#if !net.mdns_available}<div class="alert small">{t('settings.network.mdns_missing')}</div>
+            {:else if net.docker}<div class="alert info small">{t('settings.network.mdns_docker')}</div>{/if}
+            {#if net.mdns && net.mdns_error}<div class="alert danger small">{t('settings.network.mdns_error', { error: net.mdns_error })}</div>{/if}
+            {#if !net.lan_open}<div class="alert info small">{t('settings.network.desktop_only')}</div>{/if}
+          </section>
+
+          <section class="card card-body stack">
+            <h2>{t('settings.network.public_title')}</h2>
+            <p class="muted">{t('settings.network.public_text')}</p>
+            <label class="field"><span>{t('settings.network.public')}</span>
+              <input class="input" bind:value={netForm.public_url} placeholder="https://monentreprise.duckdns.org" disabled={net.public_url_locked} />
+              {#if net.public_url_locked}<small class="hint">{t('settings.network.locked')}</small>{/if}
+            </label>
+            <div class="alert info small">{t('settings.network.domain_help')}</div>
+          </section>
+
+          <section class="card card-body stack">
+            <h2>{t('settings.network.dyndns_title')}</h2>
+            <p class="muted">{t('settings.network.dyndns_text')}</p>
+            <label class="check"><input type="checkbox" bind:checked={netForm.dyndns_enabled} />{t('settings.network.dyndns_enable')}</label>
+            {#if netForm.dyndns_enabled}
+              <div class="grid-2">
+                <label class="field"><span>{t('settings.network.provider')}</span>
+                  <select class="input" bind:value={netForm.dyndns_provider}>
+                    <option value="duckdns">DuckDNS</option><option value="custom">{t('settings.network.provider_custom')}</option>
+                  </select></label>
+                <span></span>
+                {#if netForm.dyndns_provider === 'custom'}
+                  <label class="field span-2"><span>{t('settings.network.custom_url')}</span>
+                    <input class="input" type="password" autocomplete="off" bind:value={netForm.dyndns_url} placeholder="https://…" />
+                    <small class="hint">{t('settings.network.custom_hint')}</small></label>
+                {:else}
+                  <label class="field"><span>{t('settings.network.subdomain')}</span>
+                    <span class="suffix"><input class="input" bind:value={netForm.duckdns_subdomain} placeholder="monentreprise" /><span>.duckdns.org</span></span></label>
+                  <label class="field"><span>{t('settings.network.token')}</span>
+                    <input class="input" type="password" autocomplete="off" bind:value={netForm.duckdns_token} />
+                    <small class="hint">{t('settings.network.token_hint')}</small></label>
+                {/if}
+              </div>
+              {#if net.dyndns_active || net.dyndns_last_result}
+                <div class="alert {String(net.dyndns_last_result).startsWith('OK') ? 'info' : ''} small">
+                  {t('settings.network.last_update', { result: net.dyndns_last_result || '…',
+                    time: net.dyndns_last_time ? new Date(net.dyndns_last_time * 1000).toLocaleTimeString() : '—' })}
+                </div>
+              {/if}
+            {/if}
+            <div class="row"><span class="grow"></span><button class="btn primary" disabled={busy} onclick={saveNetwork}>{t('common.save')}</button></div>
+          </section>
+        {/if}
+
       {:else if tab === 'about'}
         <section class="card card-body about">
           <img src={themes.active?.mode === 'dark' && ed.assets.logo_dark ? ed.assets.logo_dark : ed.assets.logo} alt={ed.name} />
@@ -379,6 +480,13 @@
   .color input[type='color'] { width: 42px; height: var(--input-h); border: 1px solid var(--border); border-radius: 8px; padding: 2px; background: var(--surface); }
   .editor { border-color: var(--primary); }
   .about img { width: 260px; max-width: 100%; margin-bottom: 12px; }
+  .urls { display: grid; gap: 8px; }
+  .url { all: unset; box-sizing: border-box; display: grid; gap: 2px; padding: 10px 12px; border-radius: 9px; border: 1px solid var(--border); cursor: copy; }
+  .url:hover { border-color: var(--primary); background: var(--surface-2); }
+  .url code { font-size: 14px; color: var(--primary-strong); word-break: break-all; }
+  :global([data-mode='dark']) .url code { color: var(--primary); }
+  .suffix { display: flex; align-items: center; gap: 6px; }
+  .suffix span { color: var(--muted); white-space: nowrap; font-family: ui-monospace, monospace; }
   .about dl { display: grid; grid-template-columns: max-content 1fr; gap: 6px 18px; }
   .about dt { color: var(--muted); }
   .about dd { margin: 0; font-weight: 550; }

@@ -73,7 +73,8 @@ def _open_session(request: Request, response: Response, db: Session, user: User)
     db.commit()
     response.set_cookie(
         _cookie(request), token, max_age=SESSION_DAYS * 86400, httponly=True, samesite="lax",
-        secure=request.app.state.settings.cookie_secure,
+        # en HTTPS (directement ou derrière un relais web) le cookie n'est jamais envoyé en clair
+        secure=request.app.state.settings.cookie_secure or request.url.scheme == "https",
     )
 
 

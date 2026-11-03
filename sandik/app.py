@@ -5,6 +5,7 @@
 from __future__ import annotations
 
 import logging
+from contextlib import asynccontextmanager
 from pathlib import Path
 
 from fastapi import FastAPI, Request
@@ -18,6 +19,7 @@ from .db import Base, make_engine, make_sessionmaker
 from .editions import load_edition
 from .modules import ModuleError, load_modules
 from .services.documents import BusinessError
+from .services.network import DynDnsUpdater, LocalAnnouncer
 from .services.settings_store import get_setting
 
 STATIC_DIR = Path(__file__).parent / "static"
@@ -36,10 +38,20 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     engine = make_engine(settings.database_url)
     Base.metadata.create_all(engine)
 
+    @asynccontextmanager
+    async def lifespan(app: FastAPI):
+        system.apply_local_name(app)  # nom sur le réseau local (si activé)
+        system.apply_dyndns(app)      # DNS dynamique (si activé)
+        yield
+        app.state.announcer.stop()
+        app.state.dyndns.stop()
+
     app = FastAPI(
-        title=ed.name, version=__version__,
+        title=ed.name, version=__version__, lifespan=lifespan,
         docs_url="/api/docs", redoc_url=None, openapi_url="/api/openapi.json",
     )
+    app.state.announcer = LocalAnnouncer()
+    app.state.dyndns = DynDnsUpdater()
     app.state.settings = settings
     app.state.edition = ed
     app.state.engine = engine

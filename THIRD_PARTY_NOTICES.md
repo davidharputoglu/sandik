@@ -21,6 +21,8 @@ et dans les paquets eux-mêmes.
 | typing_extensions | PSF-2.0 | Python Software Foundation | https://github.com/python/typing_extensions |
 | annotated-types / annotated-doc | MIT | their authors | https://pypi.org/project/annotated-types/ |
 | psycopg (optionnel, PostgreSQL) | LGPL-3.0 | The Psycopg Team | https://www.psycopg.org |
+| zeroconf (optionnel, nom .local) | LGPL-2.1-or-later | Paul Scott-Murphy, William McVey, J. Nick Koston et contributeurs | https://github.com/python-zeroconf/python-zeroconf |
+| ifaddr (avec zeroconf) | MIT | Stefan C. Mueller | https://github.com/ifaddr/ifaddr |
 | tomli (Python < 3.11) | MIT | Taneli Hukkinen | https://github.com/hukkin/tomli |
 
 ## Interface (navigateur)

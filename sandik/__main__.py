@@ -5,6 +5,7 @@
 from __future__ import annotations
 
 import argparse
+import dataclasses
 import json
 import logging
 import os
@@ -40,6 +41,11 @@ def _running_edition(port: int) -> str | None:
         return None
 
 
+def _uvicorn_options(settings) -> dict:
+    # En-têtes X-Forwarded-* des relais web de confiance (Caddy, Traefik, Nginx Proxy Manager…)
+    return {"proxy_headers": True, "forwarded_allow_ips": settings.trusted_proxies}
+
+
 def _desktop_window(app, host: str, port: int, title: str) -> bool:
     """Fenêtre native (pywebview) si disponible. Renvoie False pour revenir au navigateur."""
     if os.environ.get("SANDIK_BROWSER"):
@@ -48,7 +54,8 @@ def _desktop_window(app, host: str, port: int, title: str) -> bool:
         import webview  # pywebview : fenêtre native (Edge WebView2 sous Windows)
     except Exception:
         return False
-    server = uvicorn.Server(uvicorn.Config(app, host=host, port=port, log_level="warning"))
+    server = uvicorn.Server(uvicorn.Config(app, host=host, port=port, log_level="warning",
+                                           **_uvicorn_options(app.state.settings)))
     threading.Thread(target=server.run, daemon=True).start()
     for _ in range(100):
         if server.started:
@@ -70,7 +77,7 @@ def main(argv: list[str] | None = None) -> None:
     p = argparse.ArgumentParser(prog="sandik", description="CRM, devis et factures.")
     p.add_argument("--edition", help="Édition à lancer (sandik, batipilot, ...) ou dossier d'édition.")
     p.add_argument("--host", default="127.0.0.1", help="Adresse d'écoute (0.0.0.0 pour Docker / réseau).")
-    p.add_argument("--port", type=int, default=int(os.environ.get("SANDIK_PORT", DEFAULT_PORT)))
+    p.add_argument("--port", type=int, help=f"port d'écoute (défaut : SANDIK_PORT ou {DEFAULT_PORT})")
     p.add_argument("--data-dir", help="Dossier des données (base SQLite, fichiers).")
     p.add_argument("--database-url", help="Ex. postgresql+psycopg://utilisateur:motdepasse@hote/base")
     p.add_argument("--desktop", action="store_true", help="Mode poste de travail : fenêtre de l'application, sans connexion.")
@@ -79,10 +86,10 @@ def main(argv: list[str] | None = None) -> None:
 
     logging.basicConfig(level=logging.INFO, format="%(levelname)s  %(name)s  %(message)s")
     settings = load_settings(edition=args.edition, data_dir=args.data_dir, database_url=args.database_url,
-                             desktop=args.desktop)
+                             desktop=args.desktop, port=args.port, host=args.host)
     log = logging.getLogger("sandik")
 
-    port = args.port
+    port = settings.port
     if args.desktop:
         from .editions import load_edition
 
@@ -93,13 +100,14 @@ def main(argv: list[str] | None = None) -> None:
         while not _port_free(args.host, port):
             port += 1
 
+    settings = dataclasses.replace(settings, port=port)
     app = create_app(settings)
     log.info("Données : %s", settings.data_dir)
     if args.desktop and not args.no_browser:
         if _desktop_window(app, args.host, port, app.state.edition.name):
             return
         threading.Timer(1.5, webbrowser.open, args=(f"http://{args.host}:{port}/",)).start()
-    uvicorn.run(app, host=args.host, port=port, log_level="info")
+    uvicorn.run(app, host=args.host, port=port, log_level="info", **_uvicorn_options(settings))
 
 
 if __name__ == "__main__":
